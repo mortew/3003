@@ -138,8 +138,41 @@ sample4	0/22	0/4	0/74	0/6	0/3	0/3	0/5	0/3	0/27	NO_CB_COVERAGE
 ### Ключевые отличия оптимизированной версии:
 
 1. **Параллельный mpileup** — каждый BAM обрабатывается отдельным процессом одновременно
+
+**Было (последовательно):**
+```bash
+samtools mpileup -f "$REF" -l "$BED_FILE" -q 0 -Q 0 -d 10000 $bam_args > "$RAW_PILEUP"
+```
+
+**Стало (параллельно):**
+```bash
+PILEUP_DIR="$TMP_DIR/pileups"
+mkdir -p "$PILEUP_DIR"
+while IFS=$'\t' read -r sample bam; do
+    samtools mpileup -f "$REF" -l "$BED_FILE" -q 0 -Q 0 -d 10000 "$bam" > "$PILEUP_DIR/${sample}.pileup" &
+done < "$SAMPLE_NAMES"
+wait
+cat "$PILEUP_DIR"/*.pileup | sort -k1,1 -k2,2n > "$RAW_PILEUP"
+```
+
 2. **Прекомпиляция регулярных выражений** — паттерны компилируются один раз перед циклом
-3. **Ускорение** — ~4 минуты → ~1 минута 17 секунд (для 3 образцов, ~3× быстрее)
+
+**Было (компиляция в каждом цикле):**
+```python
+clean = re.sub(r'\^.', '', re.sub(r'$', '', re.sub(r'[0-9]+[+-][0-9]+[ACGTNacgtn]*', '', bases)))
+alt_bases = [b.upper() for b in re.findall(r'[ACGTNacgtn]', clean)]
+```
+
+**Стало (компиляция один раз):**
+```python
+# До цикла:
+PILEUP_CLEAN_RE = re.compile(r'(?:\^.)|(?:\$)|(?:[0-9]+[+-][0-9]+[ACGTNacgtn]*)')
+ALT_BASE_RE = re.compile(r'[ACGTNacgtn]')
+
+# В цикле:
+clean = PILEUP_CLEAN_RE.sub('', bases)
+alt_bases = [b.upper() for b in ALT_BASE_RE.findall(clean)]
+```
 
 ### Замеры времени выполнения (3 образца, 160 маркеров):
 
