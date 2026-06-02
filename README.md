@@ -1,46 +1,46 @@
 # 3003
 
-**cohen_cb_analysis.sh** анализирует BAM-файлы образцов на наличие 160 маркеров Y-хромосомы из таблицы, определяя генотипы по наиболее частому альтернативному аллелю в каждой позиции. На выходе создаются VCF-файл с детальными генотипами для каждого образца и TSV-сводка с классификацией образцов по принадлежности к ветвям Коэнов (CB-01 — CB-09 из [doi:10.64898/2025.12.08.692646](https://doi.org/10.64898/2025.12.08.692646)) на основе доли совпавших маркеров.
+**cohen_cb_analysis.sh** analyzes sample BAM files for the presence of 160 Y-chromosome markers from a reference table, determining genotypes based on the most frequent alternative allele at each position. The output includes a VCF file with detailed genotypes for each sample and a TSV summary classifying samples into Cohen Branches (CB-01 — CB-09 from [doi:10.64898/2025.12.08.692646](https://doi.org/10.64898/2025.12.08.692646)) based on the proportion of matching markers.
 
 ---
 
-## Входные данные
+## Input Data
 
-| № | Файл | Описание |
-|---|------|----------|
-| 1 | `*.bam` + `*.bai` | Проиндексированные BAM-файлы образцов |
-| 2 | `markers_master_table.tsv` | Таблица с маркерами (SNP_Name, CB_Branch, POS_hg19, REF, ALT) |
-| 3 | `hg19.no_alt.fa` + `.fai` | Проиндексированная референсная последовательность hg19 |
-
----
-
-## Выходные данные
-
-| Файл | Описание |
-|------|----------|
-| `cohen_cb_genotypes.vcf.gz` + `.tbi` | Проиндексированный VCF, документирующий что у каждого образца находится в позиции маркера |
-| `cohen_cb_summary.tsv` | Сводная таблица, подсчитывающая обнаруженные маркеры для каждой гаплогруппы |
+| # | File | Description |
+|---|------|-------------|
+| 1 | `*.bam` + `*.bai` | Indexed sample BAM files |
+| 2 | `markers_master_table.tsv` | Marker table (SNP_Name, CB_Branch, POS_hg19, REF, ALT) |
+| 3 | `hg19.no_alt.fa` + `.fai` | Indexed hg19 reference sequence |
 
 ---
 
-## Запуск
+## Output Data
+
+| File | Description |
+|------|-------------|
+| `cohen_cb_genotypes.vcf.gz` + `.tbi` | Indexed VCF documenting the allele observed at each marker position for each sample |
+| `cohen_cb_summary.tsv` | Summary table counting detected markers for each haplogroup |
+
+---
+
+## Usage
 
 ```bash
 ./cohen_cb_analysis.sh bam CB output ref19
 ```
 
-| Аргумент | Описание |
-|----------|----------|
-| `bam` | Папка с BAM-файлами образцов |
-| `CB` | Папка с таблицей маркеров (`markers_master_table.tsv`) |
-| `output` | Директория для выходных данных |
-| `ref19` | Папка с референсом hg19 |
+| Argument | Description |
+|----------|-------------|
+| `bam` | Directory containing sample BAM files |
+| `CB` | Directory containing the marker table (`markers_master_table.tsv`) |
+| `output` | Output directory for results |
+| `ref19` | Directory containing the hg19 reference genome |
 
 ---
 
-## Подробнее об организации `cohen_cb_genotypes.vcf`
+## Details: `cohen_cb_genotypes.vcf` Structure
 
-### Пример заголовка и данных
+### Header and Data Example
 
 ```vcf
 ##fileformat=VCFv4.2
@@ -56,30 +56,30 @@
 chrY    2709209 ZS222   T    C    .     PASS    CB=CB-01;EXPECTED_ALT=C   GT:DP:OBS:CBM:CBS   0:5:REF:NA:REF  1:8:C:YES:MATCH
 ```
 
-### Поля VCF
+### VCF Fields
 
-| Поле | Описание |
-|------|----------|
-| `ID` | Название маркера |
-| `ALT` | Ожидаемый маркерный аллель |
-| `INFO:CB` | Принадлежность маркера к гаплогруппе CB |
-| `INFO:EXPECTED_ALT` | Дублируется информация об ожидаемом маркерном аллеле |
+| Field | Description |
+|-------|-------------|
+| `ID` | Marker name |
+| `ALT` | Expected marker allele |
+| `INFO:CB` | Marker's Cohen Branch assignment |
+| `INFO:EXPECTED_ALT` | Duplicate of the expected marker allele |
 
-### FORMAT поля (на образец)
+### FORMAT Fields (per sample)
 
-| Поле | Описание | Значения |
-|------|----------|----------|
-| `GT` | Генотип | `0` = референс, `1` = не-референс |
-| `DP` | Глубина прочтения | Число ридов |
-| `OBS` | Наблюдаемый у образца аллель | `REF` = референсный, `.` = нет покрытия, `A/C/G/T` = альтернативный |
-| `CBM` | Соответствие маркерному аллелю | `YES` / `NO` / `NA` |
-| `CBS` | Вердикт относительно маркерного аллеля | `MATCH` = обнаружен маркерный аллель, `WRONG_ALLELE` = альтернативный не-маркерный аллель, `REF_ONLY` = референсный аллель, `NO_COVERAGE` = нет покрытия |
+| Field | Description | Values |
+|-------|-------------|--------|
+| `GT` | Genotype | `0` = reference, `1` = non-reference |
+| `DP` | Read depth | Number of reads |
+| `OBS` | Observed allele in sample | `REF` = reference allele, `.` = no coverage, `A/C/G/T` = alternative allele |
+| `CBM` | Match to marker allele | `YES` / `NO` / `NA` |
+| `CBS` | Verdict regarding marker allele | `MATCH` = marker allele detected, `WRONG_ALLELE` = alternative non-marker allele, `REF_ONLY` = reference allele only, `NO_COVERAGE` = no coverage |
 
 ---
 
-## Подробнее об организации `cohen_cb_summary.tsv`
+## Details: `cohen_cb_summary.tsv` Structure
 
-### Пример
+### Example
 
 ```tsv
 Sample	CB-01_markers	CB-02_markers	CB-03_markers	CB-04_markers	CB-05_markers	CB-06_markers	CB-07_markers	CB-08_markers	CB-09_markers	CB_Assignment
@@ -89,62 +89,62 @@ sample3	0/22	0/4	0/74	0/6	0/3	0/3	0/5	0/3	0/27	NO_CB_MATCH
 sample4	0/22	0/4	0/74	0/6	0/3	0/3	0/5	0/3	0/27	NO_CB_COVERAGE
 ```
 
-### Столбцы
+### Columns
 
-| Столбец | Описание |
-|---------|----------|
-| `Sample` | Имя образца |
-| `CB-XX_markers` | Маркеры ветви в формате `обнаруженные/прочитанные` |
-| `CB_Assignment` | Вердикт анализа |
+| Column | Description |
+|--------|-------------|
+| `Sample` | Sample name |
+| `CB-XX_markers` | Branch markers in format `detected/read` |
+| `CB_Assignment` | Analysis verdict |
 
-### Формат ячеек маркеров
+### Marker Cell Format
 
 ```
-обнаруженные маркеры / прочитанные позиции
+detected markers / read positions
 ```
 
-| Компонент | Описание |
-|-----------|----------|
-| `обнаруженные` | Количество маркеров где найден ожидаемый аллель (MATCH) |
-| `прочитанные` | Количество маркеров с покрытием ≥1 рид |
+| Component | Description |
+|-----------|-------------|
+| `detected` | Number of markers where the expected allele was found (MATCH) |
+| `read` | Number of markers with coverage ≥1 read |
 
-### Значения CB_Assignment
+### CB_Assignment Values
 
-| Значение | Описание |
-|----------|----------|
-| `NO_CB_COVERAGE` | Не пройден порог покрытия для определения |
-| `NO_CB_MATCH` | Не пройден порог доли обнаруженных маркеров — нет совпадения среди CB гаплогрупп |
-| `CB-01` — `CB-09` | Одна или несколько ветвей проходят пороги |
+| Value | Description |
+|-------|-------------|
+| `NO_CB_COVERAGE` | Coverage threshold not met for assignment |
+| `NO_CB_MATCH` | Match ratio threshold not met — no Cohen Branch assignment |
+| `CB-01` — `CB-09` | One or more branches meet classification thresholds |
 
 ---
 
-## Пороги классификации
+## Classification Thresholds
 
-| Параметр | Значение | Описание |
-|----------|----------|----------|
-| `MIN_DEPTH` | 1 | Минимальная глубина для учёта позиции |
-| `MIN_COVERAGE_RATIO` | 0.30 | ≥30% маркеров ветви должно быть покрыто |
-| `MIN_MATCH_RATIO` | 0.50 | ≥50% покрытых маркеров должны совпасть |
+| Parameter | Value | Description |
+|-----------|-------|-------------|
+| `MIN_DEPTH` | 1 | Minimum depth for a position to be considered |
+| `MIN_COVERAGE_RATIO` | 0.30 | ≥30% of branch markers must be covered |
+| `MIN_MATCH_RATIO` | 0.50 | ≥50% of covered markers must match the expected allele |
 
 ---
 
-## Версии скрипта
+## Script Versions
 
-| Версия | Файл | Описание |
-|--------|------|----------|
-| **Базовая** | `cohen_cb_analysis.sh` | Последовательная обработка BAM-файлов, регулярки компилируются в каждом цикле |
-| **Оптимизированная** | `cohen_cb_analysis2.sh` | **Рекомендуемая** — параллельный mpileup + прекомпиляция регулярок |
+| Version | File | Description |
+|---------|------|-------------|
+| **Basic** | `cohen_cb_analysis.sh` | Sequential BAM processing; regex patterns compiled in each loop iteration |
+| **Optimized** | `cohen_cb_analysis2.sh` | **Recommended** — parallel mpileup + precompiled regex patterns |
 
-### Ключевые отличия оптимизированной версии:
+### Key Differences in the Optimized Version:
 
-1. **Параллельный mpileup** — каждый BAM обрабатывается отдельным процессом одновременно
+1. **Parallel mpileup** — each BAM file is processed by a separate process simultaneously
 
-**Было (последовательно):**
+**Before (sequential):**
 ```bash
 samtools mpileup -f "$REF" -l "$BED_FILE" -q 0 -Q 0 -d 10000 $bam_args > "$RAW_PILEUP"
 ```
 
-**Стало (параллельно):**
+**After (parallel):**
 ```bash
 PILEUP_DIR="$TMP_DIR/pileups"
 mkdir -p "$PILEUP_DIR"
@@ -155,28 +155,28 @@ wait
 cat "$PILEUP_DIR"/*.pileup | sort -k1,1 -k2,2n > "$RAW_PILEUP"
 ```
 
-2. **Прекомпиляция регулярных выражений** — паттерны компилируются один раз перед циклом
+2. **Precompiled regular expressions** — patterns are compiled once before the loop
 
-**Было (компиляция в каждом цикле):**
+**Before (compilation inside loop):**
 ```python
 clean = re.sub(r'\^.', '', re.sub(r'$', '', re.sub(r'[0-9]+[+-][0-9]+[ACGTNacgtn]*', '', bases)))
 alt_bases = [b.upper() for b in re.findall(r'[ACGTNacgtn]', clean)]
 ```
 
-**Стало (компиляция один раз):**
+**After (compilation once):**
 ```python
-# До цикла:
+# Before loop:
 PILEUP_CLEAN_RE = re.compile(r'(?:\^.)|(?:\$)|(?:[0-9]+[+-][0-9]+[ACGTNacgtn]*)')
 ALT_BASE_RE = re.compile(r'[ACGTNacgtn]')
 
-# В цикле:
+# Inside loop:
 clean = PILEUP_CLEAN_RE.sub('', bases)
 alt_bases = [b.upper() for b in ALT_BASE_RE.findall(clean)]
 ```
 
-### Замеры времени выполнения (3 образца, 160 маркеров):
+### Runtime Benchmarks (3 samples, 160 markers):
 
-| Версия | real | user | sys | Ускорение |
-|--------|------------------|------------------|-----|-----------|
-| **Базовая** (последовательная) | 3м 54с | 3м 11с | 8.5с | 1× |
-| **Оптимизированная** (параллельная) | **1м 20с** | 3м 16с | 7.2с | **~3×** |
+| Version | real | user | sys | Speedup |
+|---------|------------------|------------------|-----|---------|
+| **Basic** (sequential) | 3m 54s | 3m 11s | 8.5s | 1× |
+| **Optimized** (parallel) | **1m 20s** | 3m 16s | 7.2s | **~3×** |
