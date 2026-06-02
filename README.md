@@ -180,3 +180,39 @@ alt_bases = [b.upper() for b in ALT_BASE_RE.findall(clean)]
 |---------|------------------|------------------|-----|---------|
 | **Basic** (sequential) | 3m 54s | 3m 11s | 8.5s | 1× |
 | **Optimized** (parallel) | **1m 20s** | 3m 16s | 7.2s | **~3×** |
+
+
+## Academic Context
+
+This repository contains supplementary materials for the Master's thesis:
+
+**"Identification of Cohen Haplogroups and their Application to Modern Jewish Subpopulations"**
+
+The repository includes:
+- Analysis pipeline for Cohen branch identification (CB-01 to CB-09)
+- Interactive visualizations of population genetic structure
+- Marker tables and reference data
+
+### Interactive Visualizations
+
+The HTML files (`mtdna_combined.html` and `ydna_combined.html`) provide interactive exploration of:
+
+**mtDNA Visualization:**
+- Mitochondrial haplogroup distribution across five Jewish subpopulations (Ashkenazi, Mountain, Georgian, Bukharan, Kurdistani)
+- Composition of prior cohort (n=132) and internal Genotek cohort (n=1,960)
+- Maternal lineage diversity patterns supporting findings in Section 3.2
+
+[Open Interactive Plot](https://mortew.github.io/3003/mtdna_combined.html)
+
+**Y-DNA Visualization:**
+- Y-chromosome haplogroup distribution across five Jewish subpopulations (Ashkenazi, Mountain, Georgian, Bukharan, Kurdistani)
+- Composition of prior cohort (n=132) and internal Genotek cohort (n=1,960)
+- Population-specific Y-chromosome signatures discussed in Section 3.3
+
+[Open Interactive Plot](https://mortew.github.io/3003/ydna_combined.html)
+
+These visualizations complement haplogroup distribution charts (Figs. 6-17) presented in the thesis.
+
+> **Note:**  
+> Clicking on the `.html` files directly in the repository will open them as code/text.  
+> For interactive viewing with Plotly graphs, use the links above.
