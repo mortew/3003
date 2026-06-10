@@ -214,7 +214,7 @@ print(f"  Done: VCF and TSV")
 PYTHON
 
 echo ""
-echo "Анализ завершён"
-echo "Выходные файлы:"
+echo "Analysis is done"
+echo "Output:"
 echo "  $FINAL_VCF"
 echo "  $TSV_OUT"
