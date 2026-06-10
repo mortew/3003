@@ -2,7 +2,7 @@
 set -euo pipefail
 
 if [[ $# -lt 3 ]]; then
-    echo "Использование: $0 <bam_dir> <markers_dir> <output_dir> [ref_dir]"
+    echo "Usage: $0 <bam_dir> <markers_dir> <output_dir> [ref_dir]"
     exit 1
 fi
 
@@ -28,22 +28,22 @@ echo "Маркеры: $MASTER_MARKERS_FILE"
 echo "Вывод: $OUT_DIR"
 echo "Референс: $REF"
 
-echo "[0/4] Проверка входных данных..."
-[[ ! -f "$REF" ]] && { echo "Ошибка: Референс не найден: $REF"; exit 1; }
+echo "[0/4] Input check..."
+[[ ! -f "$REF" ]] && { echo "Error: Reference is not found: $REF"; exit 1; }
 [[ ! -f "${REF}.fai" ]] && samtools faidx "$REF"
-[[ ! -f "$MASTER_MARKERS_FILE" ]] && { echo "Ошибка: Таблица не найдена: $MASTER_MARKERS_FILE"; exit 1; }
+[[ ! -f "$MASTER_MARKERS_FILE" ]] && { echo "Error: Table is not found: $MASTER_MARKERS_FILE"; exit 1; }
 
 BAM_COUNT=$(find "$BAM_DIR" -maxdepth 1 -name "*.bam" -type f | wc -l)
-[[ $BAM_COUNT -eq 0 ]] && { echo "Ошибка: BAM-файлы не найдены"; exit 1; }
+[[ $BAM_COUNT -eq 0 ]] && { echo "Error: BAM-files are not found"; exit 1; }
 
-echo "  BAM: $BAM_COUNT, Референс: OK, Маркеры: OK"
+echo "  BAM: $BAM_COUNT, Reference: OK, Markers: OK"
 
-echo "[1/4] Создание BED-файла..."
+echo "[1/4] BED-file creation..."
 BED_FILE="$TMP_DIR/markers.bed"
 awk -F'\t' 'NR>1 && $3!="" && $3!="NA" && $3~/^[0-9]+$/ {print "chrY\t"$3-1"\t"$3"\t"$1"\t0\t+"}' "$MASTER_MARKERS_FILE" | sort -u -k1,1 -k2,2n > "$BED_FILE"
 echo "  Позиций: $(wc -l < "$BED_FILE")"
 
-echo "[2/4] Поиск BAM-файлов..."
+echo "[2/4] Searching BAM-files..."
 BAM_LIST="$TMP_DIR/bam_list.txt"
 SAMPLE_NAMES="$TMP_DIR/sample_names.txt"
 find "$BAM_DIR" -maxdepth 1 -name "*.bam" -type f | sort > "$BAM_LIST"
@@ -57,16 +57,16 @@ while read -r bam; do
     echo -e "${sample_name}\t${bam}" >> "$SAMPLE_NAMES"
 done < "$BAM_LIST"
 
-echo "  Образцов: $(wc -l < "$BAM_LIST")"
+echo "  Samples: $(wc -l < "$BAM_LIST")"
 
-echo "[3/4] Извлечение аллелей..."
+echo "[3/4] Allele extraction..."
 RAW_PILEUP="$TMP_DIR/raw.pileup"
 bam_args=$(cat "$BAM_LIST" | tr '\n' ' ')
 
 samtools mpileup -f "$REF" -l "$BED_FILE" -q 0 -Q 0 -d 10000 $bam_args > "$RAW_PILEUP"
-echo "  Позиций в pileup: $(wc -l < "$RAW_PILEUP")"
+echo "  Positions in pileup: $(wc -l < "$RAW_PILEUP")"
 
-echo "[4/4] Генерация отчётов..."
+echo "[4/4] Report generation..."
 FINAL_VCF="${OUT_DIR}/cohen_cb_genotypes.vcf.gz"
 TSV_OUT="${OUT_DIR}/cohen_cb_summary.tsv"
 
@@ -91,7 +91,7 @@ with open(MASTER_MARKERS_FILE, 'r') as f:
             markers_by_pos[pos].append(snp)
             cb_markers[cb].append(snp)
 
-print(f"  Загружено маркеров: {len(markers)}")
+print(f"  Markers uploaded: {len(markers)}")
 
 sample_names = [line.strip().split('\t')[0] for line in open(SAMPLE_NAMES) if line.strip()]
 if not sample_names:
@@ -111,7 +111,7 @@ with open(RAW_PILEUP, 'r') as f:
         observed_alt = Counter(alt_bases).most_common(1)[0][0] if alt_bases else None
         pileup_by_pos[pos] = {'depth': depth, 'observed_alt': observed_alt, 'gt': 1 if observed_alt else 0}
 
-print(f"  Покрыто позиций: {len(pileup_by_pos)}")
+print(f"  Positions covered: {len(pileup_by_pos)}")
 
 chrY_length = 59373566
 try:
@@ -210,7 +210,7 @@ with open(TSV_OUT, 'w') as out:
         row.append(classify(results[s], cb_markers))
         out.write('\t'.join(row) + '\n')
 
-print(f"  Готово: VCF и TSV")
+print(f"  Done: VCF and TSV")
 PYTHON
 
 echo ""
