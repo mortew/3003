@@ -219,11 +219,11 @@ with open(TSV_OUT, 'w') as out:
         row.append(classify(results[s], cb_markers))
         out.write('\t'.join(row) + '\n')
 
-print(f"  Done: VCF и TSV")
+print(f"  Done: VCF and TSV")
 PYTHON
 
 echo ""
-echo "Анализ завершён"
-echo "Выходные файлы:"
+echo "Analysis is done"
+echo "Output:"
 echo "  $FINAL_VCF"
 echo "  $TSV_OUT"
